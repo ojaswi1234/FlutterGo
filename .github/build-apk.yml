@@ -1,0 +1,73 @@
+
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    name: Build Flutter debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Flutter Go Python tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Generate Android platform files
+        working-directory: sample_flutter_project
+        run: flutter create --platforms=android .
+
+      - name: Get Flutter dependencies
+        working-directory: sample_flutter_project
+        run: flutter pub get
+
+      - name: Run Flutter tests
+        working-directory: sample_flutter_project
+        run: flutter test
+
+      - name: Build debug APK
+        working-directory: sample_flutter_project
+        run: flutter build apk --debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-go-debug-apk
+          path: sample_flutter_project/build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
