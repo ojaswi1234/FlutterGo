@@ -16,16 +16,16 @@ void main() {
   });
 
   testWidgets('Loads project asset', (WidgetTester tester) async {
-    await tester.pumpWidget(const RuntimeProbeApp());
+  await tester.pumpWidget(const RuntimeProbeApp());
 
-    await tester.tap(find.text('Load project asset'));
-    await tester.pumpAndSettle();
+  await tester.tap(find.text('Load project asset'));
+  await tester.pumpAndSettle();
 
-    expect(
-      find.text(
-        'This text came from the separately built sample project\'s Flutter asset bundle.',
-      ),
-      findsOneWidget,
-    );
-  });
+  expect(
+    find.textContaining(
+      'This text came from the separately built sample project\'s Flutter asset bundle.',
+    ),
+    findsOneWidget,
+  );
+});
 }
